@@ -34,7 +34,9 @@ def evaluate_tool_name_was_selected(
             tool_choice="auto",
         )
 
-        selected_tool_names = [t.name for t in response.tools]
+        # Check for tool calls in response.output
+        tool_calls = [item for item in response.output if item.type == "function_call"]
+        selected_tool_names = [tool_call.name for tool_call in tool_calls]
         success = expected_tool_names in selected_tool_names
         if success:
             n_successes += 1
