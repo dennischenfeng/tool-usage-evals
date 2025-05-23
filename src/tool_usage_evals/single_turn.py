@@ -12,16 +12,16 @@ class MatchingToolNameResult(BaseModel):
     n_trials: int
 
 
-def evaluate_matching_tool_name(
+def evaluate_tool_name_was_selected(
     aoai_client: AzureOpenAI,
     tools: list[dict],
     user_message: str,
-    expected_tool_names: list[str],
+    expected_tool_names: str,
     n_trials: int = 1,
 ) -> MatchingToolNameResult:
     """
-    Given model + tools and initial user message, take a single LLM turn, checking if the response is a tool call and
-    matches the expected tool name(s).
+    Given model + tools and initial user message, take a single LLM turn, checking if the selected tool calls contains
+    the expected tool name or not.
     Will do n trials to gather statistics.
     """
     n_successes = 0
@@ -34,8 +34,8 @@ def evaluate_matching_tool_name(
             tool_choice="auto",
         )
 
-        # TODO deprecate
-        success = len(response.tools) > 0 and response.tools[0].name in expected_tool_names
+        selected_tool_names = [t.name for t in response.tools]
+        success = expected_tool_names in selected_tool_names
         if success:
             n_successes += 1
 

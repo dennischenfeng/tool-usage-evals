@@ -1,6 +1,6 @@
 """Unit tests for single turn evals"""
 
-from tool_usage_evals.single_turn import evaluate_matching_tool_name
+from tool_usage_evals.single_turn import evaluate_tool_name_was_selected
 import os
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 import pytest
@@ -37,16 +37,16 @@ def test_evaluate_matching_tool_name(aoai_client: AzureOpenAI) -> None:
                     },
                 },
                 "required": ["location"],
-                "additionalProperties": False
+                "additionalProperties": False,
             },
-            "strict": True
+            "strict": True,
         }
     ]
-    result = evaluate_matching_tool_name(
+    result = evaluate_tool_name_was_selected(
         aoai_client=aoai_client,
         tools=tools,
         user_message="What is the current time in New York?",
-        expected_tool_names=["get_current_time"],
+        expected_tool_names="get_current_time",
         n_trials=3,
     )
     assert result.accuracy == 1.0
