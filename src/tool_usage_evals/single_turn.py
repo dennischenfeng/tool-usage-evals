@@ -2,9 +2,8 @@
 Evaluate tool selection on a single LLM turn
 """
 
-from openai.types.chat import ChatCompletionMessageToolCall
+from openai import AzureOpenAI
 import os
-from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -14,7 +13,7 @@ class MatchingToolNameResult(BaseModel):
 
 
 def evaluate_matching_tool_name(
-    aoai_client: Any,
+    aoai_client: AzureOpenAI,
     tools: list[dict],
     user_message: str,
     expected_tool_names: list[str],
@@ -27,22 +26,16 @@ def evaluate_matching_tool_name(
     """
     n_successes = 0
     for i in range(n_trials):
-        messages = [dict(role="user", content=user_message)]
-        completion = aoai_client.chat.completions.create(
+        input_messages = [{"role": "user", "content": user_message}]
+        response = aoai_client.responses.create(
             model=os.environ["AOAI_MODEL"],
-            messages=messages,
+            input=input_messages,
             tools=tools,
             tool_choice="auto",
         )
-        response_message = completion.choices[0].message
 
-        actual_tool_calls = response_message.tool_calls
-
-        success = (
-            len(actual_tool_calls) > 0
-            and isinstance(actual_tool_calls[0], ChatCompletionMessageToolCall)
-            and actual_tool_calls[0].function.name in expected_tool_names
-        )
+        # TODO deprecate
+        success = len(response.tools) > 0 and response.tools[0].name in expected_tool_names
         if success:
             n_successes += 1
 

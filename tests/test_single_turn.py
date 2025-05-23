@@ -26,20 +26,20 @@ def test_evaluate_matching_tool_name(aoai_client: AzureOpenAI) -> None:
     tools = [
         {
             "type": "function",
-            "function": {
-                "name": "get_current_time",
-                "description": "Get the current time in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The city name, e.g. San Francisco",
-                        },
+            "name": "get_current_time",
+            "description": "Get the current time in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name, e.g. San Francisco",
                     },
-                    "required": ["location"],
                 },
+                "required": ["location"],
+                "additionalProperties": False
             },
+            "strict": True
         }
     ]
     result = evaluate_matching_tool_name(
