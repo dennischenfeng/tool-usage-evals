@@ -4,15 +4,22 @@ from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
 from openai import AzureOpenAI
 
 
-def mock_get_weather(location: str) -> str:
-    """Mock weather function for testing"""
-    return f"The weather in {location} is sunny and 72°F"
+def get_time(location: str) -> str:
+    """Gives current time at a location"""
+    return "It's noontime, 12pm."
+
+
+def get_temperature(location: str) -> str:
+    """Get temperature for a location"""
+    return "It's 56 degrees Fahrenheit."
 
 
 def call_function(name: str, args: dict) -> str:
     """Simple function dispatcher for tests"""
-    if name == "get_weather":
-        return mock_get_weather(**args)
+    if name == "get_time":
+        return get_time(**args)
+    elif name == "get_temperature":
+        return get_temperature(**args)
     else:
         raise ValueError(f"Unknown function: {name}")
 
@@ -21,32 +28,54 @@ def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
     tools = [
         {
             "type": "function",
-            "name": "get_weather",
-            "description": "Get current weather for a given location",
+            "name": "get_time",
+            "description": "Gives current time at a location",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "location": {
                         "type": "string",
-                        "description": "The city name, e.g. San Francisco",
+                        "description": "The city name, e.g. Paris",
                     },
                 },
                 "required": ["location"],
                 "additionalProperties": False,
             },
             "strict": True,
-        }
+        },
+        {
+            "type": "function",
+            "name": "get_temperature",
+            "description": "Get temperature for a location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name, e.g. Paris",
+                    },
+                },
+                "required": ["location"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
     ]
 
     result = run_agent_turn(
         aoai_client=aoai_client,
         tools=tools,
         call_function=call_function,
-        user_message="What's the weather like in Paris?",
+        user_message="Find the time in paris, and if it's daytime, then find the temperature.",
         max_steps=5,
     )
 
     assert isinstance(result, AgentTurnResult)
     assert len(result.messages) >= 1  # At least user message
-    assert result.steps >= 1
-    assert len(result.tool_calls) >= 0  # May or may not call functions
+    assert result.steps >= 2
+    assert len(result.tool_calls) == 2
+
+    # check tool call names
+    tool_call_names = [t.name for t in result.tool_calls]
+    assert "get_time" in tool_call_names
+    assert "get_temperature" in tool_call_names
