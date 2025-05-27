@@ -3,7 +3,8 @@ Evaluate tool usage on a LM sequence that comprises potentially multiple tool ca
 """
 
 import json
-from typing import Any, Callable
+from openai.types.responses import ResponseFunctionToolCall
+from typing import Any, Callable, Union
 from openai import AzureOpenAI
 import os
 from pydantic import BaseModel, Field
@@ -11,8 +12,11 @@ from pydantic import BaseModel, Field
 
 class AgentTurnResult(BaseModel):
     """Result of running a multi-step agent turn"""
-    messages: list[dict] = Field(description="Complete conversation history including user, assistant, and function messages")
-    tool_calls: list[dict] = Field(description="All function calls made during the turn")
+
+    messages: list[Union[dict, ResponseFunctionToolCall]] = Field(
+        description="Complete conversation history including user, assistant, and function messages"
+    )
+    tool_calls: list[ResponseFunctionToolCall] = Field(description="All function calls made during the turn")
     final_response: Any = Field(description="Final response from the model or error message")
     steps: int = Field(description="Number of steps taken in the conversation")
 
@@ -34,10 +38,10 @@ def run_agent_turn(
     all_tool_calls = []
 
     for step in range(max_steps):
-        response = aoai_client.responses.create(model="gpt-4.1", input=messages, tools=tools)
+        response = aoai_client.responses.create(model=os.environ["AOAI_MODEL"], input=messages, tools=tools)
 
         # Check if response contains function calls
-        has_function_calls = any(item.get("type") == "function_call" for item in response.output)
+        has_function_calls = any(item.type == "function_call" for item in response.output)
 
         if not has_function_calls:
             # No more function calls, return final response
@@ -49,7 +53,7 @@ def run_agent_turn(
             )
 
         # Process function calls
-        function_calls = [item for item in response.output if item.get("type") == "function_call"]
+        function_calls = [item for item in response.output if item.type == "function_call"]
 
         # Add function calls to messages
         for func_call in function_calls:
@@ -59,16 +63,14 @@ def run_agent_turn(
         # Execute functions and add results
         for func_call in function_calls:
             try:
-                name = func_call["name"]
-                args = json.loads(func_call["arguments"])
+                name = func_call.name
+                args = json.loads(func_call.arguments)
                 result = call_function(name, args)
 
-                messages.append(
-                    {"type": "function_call_output", "call_id": func_call["call_id"], "output": str(result)}
-                )
+                messages.append({"type": "function_call_output", "call_id": func_call.call_id, "output": str(result)})
             except Exception as e:
                 messages.append(
-                    {"type": "function_call_output", "call_id": func_call["call_id"], "output": f"Error: {str(e)}"}
+                    {"type": "function_call_output", "call_id": func_call.call_id, "output": f"Error: {str(e)}"}
                 )
 
     # If we reach max_steps, return what we have

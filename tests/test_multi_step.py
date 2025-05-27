@@ -37,7 +37,7 @@ def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
             "strict": True,
         }
     ]
-    
+
     result = run_agent_turn(
         aoai_client=aoai_client,
         tools=tools,
@@ -45,7 +45,7 @@ def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
         user_message="What's the weather like in Paris?",
         max_steps=5,
     )
-    
+
     assert isinstance(result, AgentTurnResult)
     assert len(result.messages) >= 1  # At least user message
     assert result.steps >= 1
