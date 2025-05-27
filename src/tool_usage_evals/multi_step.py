@@ -9,13 +9,21 @@ import os
 from pydantic import BaseModel, Field
 
 
+class AgentTurnResult(BaseModel):
+    """Result of running a multi-step agent turn"""
+    messages: list[dict] = Field(description="Complete conversation history including user, assistant, and function messages")
+    tool_calls: list[dict] = Field(description="All function calls made during the turn")
+    final_response: Any = Field(description="Final response from the model or error message")
+    steps: int = Field(description="Number of steps taken in the conversation")
+
+
 def run_agent_turn(
     aoai_client: AzureOpenAI,
     tools: list[dict],
     call_function: Callable,
     user_message: str,
     max_steps: int = 10,
-) -> Any:
+) -> AgentTurnResult:
     """
     Given the LLM client, tool definitions, and tool functions, run a full agent turn using the LLM (e.g. could be
     multiple steps within single turn).
@@ -33,12 +41,12 @@ def run_agent_turn(
 
         if not has_function_calls:
             # No more function calls, return final response
-            return {
-                "messages": messages,
-                "tool_calls": all_tool_calls,
-                "final_response": response.output_text if hasattr(response, "output_text") else response.output,
-                "steps": step + 1,
-            }
+            return AgentTurnResult(
+                messages=messages,
+                tool_calls=all_tool_calls,
+                final_response=response.output_text if hasattr(response, "output_text") else response.output,
+                steps=step + 1,
+            )
 
         # Process function calls
         function_calls = [item for item in response.output if item.get("type") == "function_call"]
@@ -64,9 +72,9 @@ def run_agent_turn(
                 )
 
     # If we reach max_steps, return what we have
-    return {
-        "messages": messages,
-        "tool_calls": all_tool_calls,
-        "final_response": "Max steps reached",
-        "steps": max_steps,
-    }
+    return AgentTurnResult(
+        messages=messages,
+        tool_calls=all_tool_calls,
+        final_response="Max steps reached",
+        steps=max_steps,
+    )
