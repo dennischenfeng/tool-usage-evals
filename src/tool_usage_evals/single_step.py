@@ -1,5 +1,5 @@
 """
-Evaluate tool selection on a single LLM turn
+Evaluate tool selection on a single LLM step
 """
 
 from openai import AzureOpenAI
@@ -20,7 +20,7 @@ def evaluate_tool_name_was_selected(
     n_trials: int = 1,
 ) -> MatchingToolNameResult:
     """
-    Given model + tools and initial user message, take a single LLM turn, checking if the selected tool calls contains
+    Given model + tools and initial user message, take a single LLM step , checking if the selected tool calls contains
     the expected tool name or not.
     Will do n trials to gather statistics.
     """
