@@ -31,16 +31,21 @@ async def extract_tool_definitions(session: ClientSession) -> list[dict]:
     """Extracts the tool definitions object (ingestable by openai chat completion)  from the MCP client session"""
     mcp_tools = (await session.list_tools()).tools
 
-    openai_tools = [
-        {
+    openai_tools = []
+    for mcp_tool in mcp_tools:
+        # Ensure the parameters schema has additionalProperties: false
+        parameters = mcp_tool.inputSchema.copy() if mcp_tool.inputSchema else {"type": "object", "properties": {}}
+        if "additionalProperties" not in parameters:
+            parameters["additionalProperties"] = False
+            
+        openai_tools.append({
             "type": "function",
             "name": mcp_tool.name,
             "description": mcp_tool.description,
-            "parameters": mcp_tool.inputSchema,
+            "parameters": parameters,
             "strict": True,
-        }
-        for mcp_tool in mcp_tools
-    ]
+        })
+    
     return openai_tools
 
 
