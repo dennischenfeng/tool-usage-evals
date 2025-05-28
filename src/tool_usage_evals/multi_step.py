@@ -4,7 +4,7 @@ Evaluate tool usage on a LM sequence that comprises potentially multiple tool ca
 
 import json
 from openai.types.responses import ResponseFunctionToolCall
-from typing import Any, Callable, Union
+from typing import Any, Awaitable, Callable, Union
 from openai import AzureOpenAI
 import os
 from pydantic import BaseModel, Field
@@ -21,10 +21,10 @@ class AgentTurnResult(BaseModel):
     steps: int = Field(description="Number of steps taken in the conversation")
 
 
-def run_agent_turn(
+async def run_agent_turn(
     aoai_client: AzureOpenAI,
     tools: list[dict],
-    call_function: Callable,
+    call_tool_fn: Callable[..., Awaitable],
     user_message: str,
     max_steps: int = 10,
 ) -> AgentTurnResult:
@@ -65,7 +65,7 @@ def run_agent_turn(
             try:
                 name = func_call.name
                 args = json.loads(func_call.arguments)
-                result = call_function(name, args)
+                result = await call_tool_fn(name, args)
 
                 messages.append({"type": "function_call_output", "call_id": func_call.call_id, "output": str(result)})
             except Exception as e:

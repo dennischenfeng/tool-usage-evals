@@ -14,7 +14,7 @@ def get_temperature(location: str) -> str:
     return "It's 56 degrees Fahrenheit."
 
 
-def call_function(name: str, args: dict) -> str:
+async def call_function(name: str, args: dict) -> str:
     """Simple function dispatcher for tests"""
     if name == "get_time":
         return get_time(**args)
@@ -65,7 +65,7 @@ def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
     result = run_agent_turn(
         aoai_client=aoai_client,
         tools=tools,
-        call_function=call_function,
+        call_tool_fn=call_function,
         user_message="Find the time in paris, and if it's daytime, then find the temperature.",
         max_steps=5,
     )

@@ -15,9 +15,9 @@ async def hello(name: str) -> str:
 
 
 @mcp.tool()
-async def get_time() -> int:
+async def get_time() -> str:
     """Gets the current time as a unix timestamp"""
-    return int(time.time())
+    return str(int(time.time()))
 
 
 if __name__ == "__main__":
