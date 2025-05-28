@@ -2,14 +2,16 @@
 Utils for handling tools that live inside MCP servers
 """
 
-from typing import AsyncIterator, Awaitable, Callable
+from typing import AsyncIterator, Awaitable, Callable, AsyncContextManager
+from contextlib import asynccontextmanager
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
-async def mcp_session_generator(command: str, args: list[str]) -> AsyncIterator[ClientSession]:
+@asynccontextmanager
+async def mcp_session_context_manager(command: str, args: list[str]) -> AsyncIterator[ClientSession]:
     """
-    Yield the session, within the mcp stdio session context.
+    Async context manager that yields an MCP session.
     Example arguments:
         command="python"
         args=["./mcp.py"]

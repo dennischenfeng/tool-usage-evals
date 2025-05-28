@@ -1,5 +1,6 @@
 """Unit tests for multi-step evals"""
 
+import pytest
 from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
 from openai import AzureOpenAI
 
@@ -24,7 +25,8 @@ async def call_function(name: str, args: dict) -> str:
         raise ValueError(f"Unknown function: {name}")
 
 
-def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
+@pytest.mark.asyncio
+async def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
     tools = [
         {
             "type": "function",
@@ -62,7 +64,7 @@ def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> None:
         },
     ]
 
-    result = run_agent_turn(
+    result = await run_agent_turn(
         aoai_client=aoai_client,
         tools=tools,
         call_tool_fn=call_function,
