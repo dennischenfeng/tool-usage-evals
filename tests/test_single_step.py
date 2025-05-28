@@ -1,6 +1,6 @@
 """Unit tests for single turn evals"""
 
-from tool_usage_evals.single_turn import evaluate_tool_name_was_selected
+from tool_usage_evals.single_step import evaluate_tool_name_was_selected
 from openai import AzureOpenAI
 
 
