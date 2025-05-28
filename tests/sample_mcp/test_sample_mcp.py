@@ -3,6 +3,7 @@ Quick test to ensure the sample MCP is working
 """
 
 import pytest
+import os
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -11,7 +12,7 @@ from mcp.client.stdio import stdio_client
 async def test_sample_mcp_list_tools():
     server_params = StdioServerParameters(
         command="python",
-        args=["./sample_mcp.py"],
+        args=[os.path.join(os.path.dirname(__file__), "sample_mcp.py")],
     )
 
     async with stdio_client(server_params) as (stdio, write):

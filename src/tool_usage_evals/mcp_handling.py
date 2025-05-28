@@ -6,6 +6,7 @@ from typing import AsyncIterator, Awaitable, Callable, AsyncContextManager
 from contextlib import asynccontextmanager
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.types import CallToolResult
 
 
 @asynccontextmanager
@@ -37,22 +38,24 @@ async def extract_tool_definitions(session: ClientSession) -> list[dict]:
         parameters = mcp_tool.inputSchema.copy() if mcp_tool.inputSchema else {"type": "object", "properties": {}}
         if "additionalProperties" not in parameters:
             parameters["additionalProperties"] = False
-            
-        openai_tools.append({
-            "type": "function",
-            "name": mcp_tool.name,
-            "description": mcp_tool.description,
-            "parameters": parameters,
-            "strict": True,
-        })
-    
+
+        openai_tools.append(
+            {
+                "type": "function",
+                "name": mcp_tool.name,
+                "description": mcp_tool.description,
+                "parameters": parameters,
+                "strict": True,
+            }
+        )
+
     return openai_tools
 
 
-async def build_mcp_tool_caller(session: ClientSession) -> Callable[..., Awaitable[str]]:
+async def build_mcp_tool_caller(session: ClientSession) -> Callable[..., Awaitable[CallToolResult]]:
     """Returns a call_tool function, which will call the tool functions from the specified mcp session"""
 
-    async def call_mcp_tool_fn(name: str, args: dict) -> str:
+    async def call_mcp_tool_fn(name: str, args: dict) -> CallToolResult:
         response = await session.call_tool(name=name, arguments=args)
         return response
 

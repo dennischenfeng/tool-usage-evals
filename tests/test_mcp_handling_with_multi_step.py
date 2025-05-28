@@ -1,6 +1,7 @@
 """Test integration of MCP handling with multi-step evaluation"""
 
 import pytest
+import os
 from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
 from tool_usage_evals.mcp_handling import (
     mcp_session_context_manager,
@@ -13,7 +14,7 @@ from openai import AzureOpenAI
 @pytest.mark.asyncio
 async def test_mcp_with_multi_step(aoai_client: AzureOpenAI) -> None:
     """Test using MCP tools with multi-step agent evaluation"""
-    async with mcp_session_context_manager("python", ["./sample_mcp/sample_mcp.py"]) as session:
+    async with mcp_session_context_manager("python", [os.path.join(os.path.dirname(__file__), "sample_mcp", "sample_mcp.py")]) as session:
         # Extract tool definitions from MCP session
         tools = await extract_tool_definitions(session)
 
