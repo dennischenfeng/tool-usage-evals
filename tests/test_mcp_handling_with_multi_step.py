@@ -1,6 +1,5 @@
 """Test integration of MCP handling with multi-step evaluation"""
 
-import json
 import pytest
 import os
 from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
@@ -10,6 +9,21 @@ from tool_usage_evals.mcp_handling import (
     build_mcp_tool_caller,
 )
 from openai import AzureOpenAI
+import openai
+from tenacity import (
+    retry,
+    wait_random_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+)
+
+
+retry_decorator = retry(
+    retry=retry_if_exception_type(openai.RateLimitError),
+    wait=wait_random_exponential(min=10, max=90),
+    stop=stop_after_attempt(6),
+    reraise=True,
+)
 
 
 @pytest.mark.asyncio
@@ -25,7 +39,7 @@ async def test_mcp_with_multi_step(aoai_client: AzureOpenAI) -> None:
         call_tool_fn = await build_mcp_tool_caller(session)
 
         # Run agent turn with MCP tools
-        result = await run_agent_turn(
+        result = await retry_decorator(run_agent_turn)(
             aoai_client=aoai_client,
             tools=tools,
             call_tool_fn=call_tool_fn,
@@ -57,7 +71,7 @@ async def test_mcp_with_multi_step_2(aoai_client: AzureOpenAI) -> None:
         call_tool_fn = await build_mcp_tool_caller(session)
 
         # Run agent turn with MCP tools
-        result = await run_agent_turn(
+        result = await retry_decorator(run_agent_turn)(
             aoai_client=aoai_client,
             tools=tools,
             call_tool_fn=call_tool_fn,

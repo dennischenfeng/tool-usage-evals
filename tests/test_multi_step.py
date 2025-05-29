@@ -1,8 +1,23 @@
 """Unit tests for multi-step evals"""
 
+import openai
 import pytest
 from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
 from openai import AzureOpenAI
+from tenacity import (
+    retry,
+    wait_random_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+)
+
+
+retry_decorator = retry(
+    retry=retry_if_exception_type(openai.RateLimitError),
+    wait=wait_random_exponential(min=10, max=90),
+    stop=stop_after_attempt(6),
+    reraise=True,
+)
 
 
 def get_time(location: str) -> str:
@@ -64,7 +79,7 @@ async def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> No
         },
     ]
 
-    result = await run_agent_turn(
+    result = await retry_decorator(run_agent_turn)(
         aoai_client=aoai_client,
         tools=tools,
         call_tool_fn=call_function,

@@ -1,6 +1,6 @@
 [project]
 name = "tool-usage-evals"
-version = "0.1.1"
+version = "0.1.2"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -10,6 +10,7 @@ dependencies = [
     "openai>=1.82.0",
     "pydantic>=2.11.5",
     "python-dotenv>=1.1.0",
+    "tenacity>=9.1.2",
 ]
 
 [build-system]
