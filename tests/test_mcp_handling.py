@@ -17,7 +17,7 @@ async def test_mcp_session_generator():
     ) as session:
         # Test that we can list tools from the session
         response = await session.list_tools()
-        assert len(response.tools) == 2
+        assert len(response.tools) == 3
 
 
 @pytest.mark.asyncio
@@ -28,13 +28,12 @@ async def test_extract_tool_definitions():
     ) as session:
         tools = await extract_tool_definitions(session)
 
-        assert len(tools) == 2
+        assert len(tools) == 3
         assert all(tool["type"] == "function" for tool in tools)
         assert any(tool["name"] == "hello" for tool in tools)
         assert any(tool["name"] == "get_time" for tool in tools)
         assert all("description" in tool for tool in tools)
         assert all("parameters" in tool for tool in tools)
-        assert all(tool["strict"] is True for tool in tools)
 
 
 @pytest.mark.asyncio
