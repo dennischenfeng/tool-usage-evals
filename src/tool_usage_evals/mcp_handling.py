@@ -34,7 +34,7 @@ async def extract_tool_definitions(session: ClientSession) -> list[dict]:
 
     openai_tools = []
     for mcp_tool in mcp_tools:
-        # Ensure the parameters schema has additionalProperties: false
+        # Ensure the parameters schema has additionalProperties: false; otherwise OpenAI will throw error
         parameters = mcp_tool.inputSchema.copy() if mcp_tool.inputSchema else {"type": "object", "properties": {}}
         if "additionalProperties" not in parameters:
             parameters["additionalProperties"] = False
@@ -45,7 +45,7 @@ async def extract_tool_definitions(session: ClientSession) -> list[dict]:
                 "name": mcp_tool.name,
                 "description": mcp_tool.description,
                 "parameters": parameters,
-                "strict": True,
+                "strict": False,
             }
         )
 

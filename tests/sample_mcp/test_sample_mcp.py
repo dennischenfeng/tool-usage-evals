@@ -20,5 +20,5 @@ async def test_sample_mcp_list_tools():
             await session.initialize()
             response = await session.list_tools()
             tools = response.tools
-            assert len(tools) == 2
+            assert len(tools) == 3
             print(tools)
