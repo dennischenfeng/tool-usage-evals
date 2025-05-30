@@ -9,6 +9,7 @@ from tool_usage_evals.mcp_handling import (
     build_mcp_tool_caller,
 )
 from openai import AzureOpenAI
+from dotenv import load_dotenv
 import openai
 from tenacity import (
     retry,
@@ -24,6 +25,8 @@ retry_decorator = retry(
     stop=stop_after_attempt(6),
     reraise=True,
 )
+
+load_dotenv()
 
 
 @pytest.mark.asyncio
@@ -41,6 +44,7 @@ async def test_mcp_with_multi_step(aoai_client: AzureOpenAI) -> None:
         # Run agent turn with MCP tools
         result = await retry_decorator(run_agent_turn)(
             aoai_client=aoai_client,
+            model=os.environ["AOAI_MODEL"],
             tools=tools,
             call_tool_fn=call_tool_fn,
             user_message="Say hello to Alice first, and then after that tell me what time it is",
@@ -73,6 +77,7 @@ async def test_mcp_with_multi_step_2(aoai_client: AzureOpenAI) -> None:
         # Run agent turn with MCP tools
         result = await retry_decorator(run_agent_turn)(
             aoai_client=aoai_client,
+            model=os.environ["AOAI_MODEL"],
             tools=tools,
             call_tool_fn=call_tool_fn,
             user_message="What are the models in the catalog?",

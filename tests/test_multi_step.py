@@ -1,5 +1,7 @@
 """Unit tests for multi-step evals"""
 
+import os
+from dotenv import load_dotenv
 import openai
 import pytest
 from tool_usage_evals.multi_step import run_agent_turn, AgentTurnResult
@@ -18,6 +20,8 @@ retry_decorator = retry(
     stop=stop_after_attempt(6),
     reraise=True,
 )
+
+load_dotenv()
 
 
 def get_time(location: str) -> str:
@@ -81,6 +85,7 @@ async def test_run_agent_turn_with_function_call(aoai_client: AzureOpenAI) -> No
 
     result = await retry_decorator(run_agent_turn)(
         aoai_client=aoai_client,
+        model=os.environ["AOAI_MODEL"],
         tools=tools,
         call_tool_fn=call_function,
         user_message="Find the time in paris, and if it's daytime, then find the temperature.",

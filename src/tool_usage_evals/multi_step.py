@@ -23,6 +23,7 @@ class AgentTurnResult(BaseModel):
 
 async def run_agent_turn(
     aoai_client: AzureOpenAI,
+    model: str,
     tools: list[dict],
     call_tool_fn: Callable[..., Awaitable],
     user_message: str,
