@@ -6,7 +6,6 @@ import json
 from openai.types.responses import ResponseFunctionToolCall
 from typing import Any, Awaitable, Callable, Union
 from openai import AzureOpenAI
-import os
 from pydantic import BaseModel, Field
 
 
@@ -39,7 +38,7 @@ async def run_agent_turn(
     all_tool_calls = []
 
     for step in range(max_steps):
-        response = aoai_client.responses.create(model=os.environ["AOAI_MODEL"], input=messages, tools=tools)
+        response = aoai_client.responses.create(model=model, input=messages, tools=tools)
 
         # Check if response contains function calls
         has_function_calls = any(item.type == "function_call" for item in response.output)
